@@ -151,16 +151,19 @@ async function ensureDatabaseSeeded() {
   }
 
   // Seed default Consultant user
+  const seededEmail = "consultant@careercompass.com";
+  const seededPassword = process.env.CONSULTANT_PASSWORD || "Compass-Consultant-2026";
+
   let consultant = await prisma.user.findFirst({
-    where: { email: "consultant@akilipath.com" }
+    where: { email: seededEmail }
   });
   if (!consultant) {
     await prisma.user.create({
       data: {
-        email: "consultant@akilipath.com",
-        passwordHash: "Akili-Consultant-2026",
+        email: seededEmail,
+        passwordHash: seededPassword,
         userRole: "school_admin",
-        firstName: "Independent",
+        firstName: "CareerCompass",
         lastName: "Consultant",
         isVerified: true
       }

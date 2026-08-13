@@ -40,8 +40,8 @@ export default function SchoolPortal() {
   const [isMounted, setIsMounted] = useState(false);
   // Consultant Authentication State
   const [isConsultantAuthenticated, setIsConsultantAuthenticated] = useState(false);
-  const [consultantEmailInput, setConsultantEmailInput] = useState("consultant@akilipath.com");
-  const [consultantPasswordInput, setConsultantPasswordInput] = useState("Akili-Consultant-2026");
+  const [consultantEmailInput, setConsultantEmailInput] = useState("");
+  const [consultantPasswordInput, setConsultantPasswordInput] = useState("");
   const [authError, setAuthError] = useState("");
   const [consultantName, setConsultantName] = useState("");
 
@@ -287,11 +287,6 @@ export default function SchoolPortal() {
             </div>
 
             <form onSubmit={handleConsultantLogin} className="space-y-4">
-              <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center justify-between text-[10px] text-accent font-bold">
-                <span>⚠️ Dev Mode Auto-fill</span>
-                <span className="text-[8px] px-1.5 py-0.5 rounded bg-amber-505 text-slate-950 font-black">ACTIVE</span>
-              </div>
-
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
                   <Mail className="w-3.5 h-3.5 text-accent" />
@@ -299,7 +294,7 @@ export default function SchoolPortal() {
                 </label>
                 <input 
                   type="email" 
-                  placeholder="e.g. consultant@akilipath.com"
+                  placeholder="consultant@careercompass.com"
                   value={consultantEmailInput}
                   onChange={(e) => setConsultantEmailInput(e.target.value)}
                   className="w-full px-3 py-2 text-xs rounded-xl border border-card-border bg-slate-950/40 text-slate-100 placeholder-slate-600 focus:outline-none focus:border-accent"
@@ -314,7 +309,7 @@ export default function SchoolPortal() {
                 </label>
                 <input 
                   type="password" 
-                  placeholder="e.g. Akili-Consultant-2026"
+                  placeholder="••••••••"
                   value={consultantPasswordInput}
                   onChange={(e) => setConsultantPasswordInput(e.target.value)}
                   className="w-full px-3 py-2 text-xs rounded-xl border border-card-border bg-slate-950/40 text-slate-100 placeholder-slate-600 focus:outline-none focus:border-accent"
