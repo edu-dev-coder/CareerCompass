@@ -258,8 +258,8 @@ export default function SchoolPortal() {
           <span>Home Portal</span>
         </Link>
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 font-bold tracking-tight">
-            <ShieldCheck className="w-5 h-5 text-accent" />
+          <div className="flex items-center gap-2 font-bold tracking-tight">
+            <img src="/logo.jpg" alt="CareerCompass Logo" className="w-7 h-7 rounded-full border border-card-border/60 object-cover" />
             <span className="text-sm text-gradient-amber">CareerCompass Consultant Hub</span>
           </div>
           <ThemeToggle />
@@ -272,8 +272,8 @@ export default function SchoolPortal() {
         {/* Step A: Consultant Login Panel (if not logged in) */}
         {!isConsultantAuthenticated && (
           <div className="w-full max-w-sm glass-panel p-6 space-y-6 text-left">
-            <div className="text-center space-y-1.5">
-              <ShieldCheck className="w-10 h-10 text-accent mx-auto animate-pulse" />
+            <div className="text-center space-y-2">
+              <img src="/logo.jpg" alt="CareerCompass Logo" className="w-12 h-12 rounded-full border border-card-border/60 object-cover mx-auto" />
               <h2 className="text-lg font-bold text-slate-200">Consultant Secure Access</h2>
               <p className="text-xs text-slate-500">Provide credentials to manage schools and codes</p>
             </div>

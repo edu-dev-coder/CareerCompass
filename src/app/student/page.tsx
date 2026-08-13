@@ -272,8 +272,8 @@ export default function StudentQuest() {
           <span>Home Portal</span>
         </Link>
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 font-bold tracking-tight">
-            <Compass className="w-5 h-5 text-primary" />
+          <div className="flex items-center gap-2 font-bold tracking-tight">
+            <img src="/logo.jpg" alt="CareerCompass Logo" className="w-7 h-7 rounded-full border border-card-border/60 object-cover" />
             <span className="text-sm text-gradient">CareerCompass Quest</span>
           </div>
           <ThemeToggle />

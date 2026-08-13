@@ -14,8 +14,8 @@ export default function Home() {
 
       {/* Header */}
       <header className="w-full max-w-6xl mx-auto flex items-center justify-between z-10">
-        <div className="flex items-center gap-2">
-          <Compass className="w-8 h-8 text-primary animate-pulse" />
+        <div className="flex items-center gap-3">
+          <img src="/logo.jpg" alt="CareerCompass Logo" className="w-9 h-9 rounded-full border border-card-border/60 object-cover" />
           <span className="text-2xl font-bold tracking-tight text-gradient">CareerCompass</span>
         </div>
         <div className="flex items-center gap-3">

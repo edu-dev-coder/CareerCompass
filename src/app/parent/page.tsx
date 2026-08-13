@@ -153,8 +153,8 @@ export default function ParentPortal() {
           <span>Home Portal</span>
         </Link>
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 font-bold tracking-tight">
-            <Users className="w-5 h-5 text-secondary" />
+          <div className="flex items-center gap-2 font-bold tracking-tight">
+            <img src="/logo.jpg" alt="CareerCompass Logo" className="w-7 h-7 rounded-full border border-card-border/60 object-cover" />
             <span className="text-sm text-gradient-emerald">CareerCompass Parent Dashboard</span>
           </div>
           <ThemeToggle />
@@ -167,8 +167,8 @@ export default function ParentPortal() {
         {/* Step A: Not Authenticated Login Panel */}
         {!isAuthenticated && (
           <div className="w-full max-w-sm glass-panel p-6 space-y-6 text-left no-print">
-            <div className="text-center space-y-1.5">
-              <Users className="w-10 h-10 text-secondary mx-auto" />
+            <div className="text-center space-y-2">
+              <img src="/logo.jpg" alt="CareerCompass Logo" className="w-12 h-12 rounded-full border border-card-border/60 object-cover mx-auto" />
               <h2 className="text-lg font-bold text-slate-200">Parent Guidance Log In</h2>
               <p className="text-xs text-slate-500">Enter your email and temporary password to review reports</p>
             </div>
