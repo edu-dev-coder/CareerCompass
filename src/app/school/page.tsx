@@ -333,11 +333,6 @@ export default function SchoolPortal() {
               </button>
             </form>
 
-            <div className="p-3 rounded-xl bg-slate-950/20 border border-card-border text-[11px] text-slate-550 leading-relaxed">
-              <span className="font-bold text-slate-400 block mb-0.5">Development Credentials:</span>
-              <span>Email: `consultant@akilipath.com`</span> <br />
-              <span>Password: `Akili-Consultant-2026`</span>
-            </div>
           </div>
         )}
 
