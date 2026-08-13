@@ -139,10 +139,14 @@ export default function SchoolPortal() {
     setAuthError("");
     try {
       const authResult = await loginConsultant(consultantEmailInput, consultantPasswordInput);
-      setConsultantName(authResult.name);
-      setIsConsultantAuthenticated(true);
+      if (authResult.success) {
+        setConsultantName(authResult.name!);
+        setIsConsultantAuthenticated(true);
+      } else {
+        setAuthError(authResult.error || "Invalid consultant credentials.");
+      }
     } catch (err: any) {
-      setAuthError(err.message || "Invalid consultant credentials.");
+      setAuthError(err.message || "Database connection error.");
     } finally {
       setLoading(false);
     }
@@ -230,10 +234,14 @@ export default function SchoolPortal() {
 
     setLoading(true);
     try {
-      await registerStudent(newStudentName, newStudentGrade, selectedSchoolId, newStudentParentEmail);
-      setNewStudentName("");
-      setNewStudentParentEmail("");
-      await loadSchoolContext(selectedSchoolId);
+      const res = await registerStudent(newStudentName, newStudentGrade, selectedSchoolId, newStudentParentEmail);
+      if (res.success) {
+        setNewStudentName("");
+        setNewStudentParentEmail("");
+        await loadSchoolContext(selectedSchoolId);
+      } else {
+        alert(res.error || "Failed to register student.");
+      }
     } catch (err) {
       console.error("Failed to register student:", err);
     } finally {

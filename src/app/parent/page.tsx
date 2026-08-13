@@ -63,17 +63,21 @@ export default function ParentPortal() {
     setAuthError("");
     try {
       const authResult = await loginParent(parentEmailInput, parentPasswordInput);
-      setParentEmail(authResult.parentEmail);
-      setChildren(authResult.children);
-      setIsAuthenticated(true);
-      
-      if (authResult.children.length > 0) {
-        setSelectedChildId(authResult.children[0].id);
+      if (authResult.success) {
+        setParentEmail(authResult.parentEmail!);
+        setChildren(authResult.children!);
+        setIsAuthenticated(true);
+        if (authResult.children!.length > 0) {
+          setSelectedChildId(authResult.children![0].id);
+        } else {
+          setLoading(false);
+        }
       } else {
+        setAuthError(authResult.error || "Invalid credentials.");
         setLoading(false);
       }
     } catch (err: any) {
-      setAuthError(err.message || "Invalid credentials.");
+      setAuthError(err.message || "Database connection error.");
       setLoading(false);
     }
   };

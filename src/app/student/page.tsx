@@ -143,10 +143,15 @@ export default function StudentQuest() {
       const tenantParam = isIndependent ? "independent" : undefined;
       
       // Registers student, validates passcode, and auto-provisions Parent account
-      const student = await registerStudent(studentName, grade, tenantParam, parentEmail, studentPasscode);
+      const studentResult = await registerStudent(studentName, grade, tenantParam, parentEmail, studentPasscode);
+      if (!studentResult.success) {
+        setShowOnboardingWarning(true);
+        setOnboardingErrorMessage(studentResult.error || "Passcode verification failed. Please try again.");
+        return;
+      }
       
       // Initialize live DB session
-      const newSessionId = await initializeSession(student.id, stage);
+      const newSessionId = await initializeSession(studentResult.id!, stage);
       setSessionId(newSessionId);
       
       // Setup client active questions

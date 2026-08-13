@@ -275,101 +275,105 @@ export async function registerStudent(
   parentEmail?: string,
   passcode?: string
 ) {
-  const seed = await ensureDatabaseSeeded();
-  const activeTenantId = tenantId === "independent" ? null : (tenantId || seed.tenantId);
+  try {
+    const seed = await ensureDatabaseSeeded();
+    const activeTenantId = tenantId === "independent" ? null : (tenantId || seed.tenantId);
 
-  const names = name.split(" ");
-  const firstName = names[0] || "Student";
-  const lastName = names.slice(1).join(" ") || "Roster";
+    const names = name.split(" ");
+    const firstName = names[0] || "Student";
+    const lastName = names.slice(1).join(" ") || "Roster";
 
-  const encryptedFirst = encryptText(firstName);
-  const encryptedLast = encryptText(lastName);
+    const encryptedFirst = encryptText(firstName);
+    const encryptedLast = encryptText(lastName);
 
-  // 1. Manage Passcode Validation (monetization step)
-  let claimedAccessCodeId: string | null = null;
-  if (passcode && passcode.trim()) {
-    const cleanCode = passcode.trim().toUpperCase();
-    const accessCodeRecord = await prisma.accessCode.findUnique({
-      where: { code: cleanCode }
+    // 1. Manage Passcode Validation (monetization step)
+    let claimedAccessCodeId: string | null = null;
+    if (passcode && passcode.trim()) {
+      const cleanCode = passcode.trim().toUpperCase();
+      const accessCodeRecord = await prisma.accessCode.findUnique({
+        where: { code: cleanCode }
+      });
+
+      if (!accessCodeRecord) {
+        return { success: false, error: "Invalid access passcode. Please check spelling or verify payment." };
+      }
+      if (accessCodeRecord.status !== "unused") {
+        return { success: false, error: "This access passcode has already been used." };
+      }
+
+      claimedAccessCodeId = accessCodeRecord.id;
+    }
+
+    // 2. Manage Automatic Parent Creation
+    let parentUserId: string | null = null;
+    if (parentEmail && parentEmail.trim()) {
+      const cleanEmail = parentEmail.trim().toLowerCase();
+      
+      let parentUser = await prisma.user.findFirst({
+        where: { email: cleanEmail, userRole: "parent" }
+      });
+
+      if (!parentUser) {
+        const tempPassword = `Akili-${firstName}-123`;
+        parentUser = await prisma.user.create({
+          data: {
+            email: cleanEmail,
+            firstName: "Parent of",
+            lastName: firstName,
+            passwordHash: tempPassword,
+            userRole: "parent",
+            isVerified: true
+          }
+        });
+      }
+      parentUserId = parentUser.id;
+    }
+
+    // Parse grade level
+    const numericGrade = gradeLevel.includes("JSS") 
+      ? parseInt(gradeLevel.split(" ")[1]) 
+      : gradeLevel.includes("SSS") ? parseInt(gradeLevel.split(" ")[1]) + 3 : 1;
+
+    const track = gradeLevel.includes("SSS") 
+      ? "senior_secondary" 
+      : gradeLevel.includes("JSS") ? "junior_secondary" : "basic";
+
+    const student = await prisma.student.create({
+      data: {
+        tenantId: activeTenantId,
+        parentId: parentUserId,
+        accessCodeId: claimedAccessCodeId,
+        currentGradeLevel: numericGrade,
+        academicTrack: track,
+        dateOfBirth: "2013-08-13",
+        gender: "Male",
+        parentalConsentSigned: true,
+        consentSignedAt: new Date(),
+        pii: {
+          create: {
+            encryptedFirstName: encryptedFirst.encryptedText,
+            encryptedLastName: encryptedLast.encryptedText,
+            iv: encryptedFirst.iv
+          }
+        }
+      }
     });
 
-    if (!accessCodeRecord) {
-      throw new Error("Invalid access passcode. Please check spelling or verify payment.");
-    }
-    if (accessCodeRecord.status !== "unused") {
-      throw new Error("This access passcode has already been used.");
-    }
-
-    claimedAccessCodeId = accessCodeRecord.id;
-  }
-
-  // 2. Manage Automatic Parent Creation
-  let parentUserId: string | null = null;
-  if (parentEmail && parentEmail.trim()) {
-    const cleanEmail = parentEmail.trim().toLowerCase();
-    
-    let parentUser = await prisma.user.findFirst({
-      where: { email: cleanEmail, userRole: "parent" }
-    });
-
-    if (!parentUser) {
-      const tempPassword = `Akili-${firstName}-123`;
-      parentUser = await prisma.user.create({
+    // Claim passcode in database if validated
+    if (claimedAccessCodeId) {
+      await prisma.accessCode.update({
+        where: { id: claimedAccessCodeId },
         data: {
-          email: cleanEmail,
-          firstName: "Parent of",
-          lastName: firstName,
-          passwordHash: tempPassword,
-          userRole: "parent",
-          isVerified: true
+          status: "used",
+          usedAt: new Date()
         }
       });
     }
-    parentUserId = parentUser.id;
+
+    return { success: true, id: student.id, name, grade: gradeLevel };
+  } catch (err: any) {
+    return { success: false, error: err.message || "Database connection error during registration." };
   }
-
-  // Parse grade level
-  const numericGrade = gradeLevel.includes("JSS") 
-    ? parseInt(gradeLevel.split(" ")[1]) 
-    : gradeLevel.includes("SSS") ? parseInt(gradeLevel.split(" ")[1]) + 3 : 1;
-
-  const track = gradeLevel.includes("SSS") 
-    ? "senior_secondary" 
-    : gradeLevel.includes("JSS") ? "junior_secondary" : "basic";
-
-  const student = await prisma.student.create({
-    data: {
-      tenantId: activeTenantId,
-      parentId: parentUserId,
-      accessCodeId: claimedAccessCodeId,
-      currentGradeLevel: numericGrade,
-      academicTrack: track,
-      dateOfBirth: "2013-08-13",
-      gender: "Male",
-      parentalConsentSigned: true,
-      consentSignedAt: new Date(),
-      pii: {
-        create: {
-          encryptedFirstName: encryptedFirst.encryptedText,
-          encryptedLastName: encryptedLast.encryptedText,
-          iv: encryptedFirst.iv
-        }
-      }
-    }
-  });
-
-  // Claim passcode in database if validated
-  if (claimedAccessCodeId) {
-    await prisma.accessCode.update({
-      where: { id: claimedAccessCodeId },
-      data: {
-        status: "used",
-        usedAt: new Date()
-      }
-    });
-  }
-
-  return { id: student.id, name, grade: gradeLevel };
 }
 
 /**
@@ -619,60 +623,70 @@ export async function getSchoolAnalytics(tenantId?: string) {
  * Returns a list of children profiles linked to that parent ID.
  */
 export async function loginParent(email: string, passwordTemp: string) {
-  await ensureDatabaseSeeded();
-  const cleanEmail = email.trim().toLowerCase();
+  try {
+    await ensureDatabaseSeeded();
+    const cleanEmail = email.trim().toLowerCase();
 
-  const user = await prisma.user.findFirst({
-    where: { email: cleanEmail, userRole: "parent" }
-  });
+    const user = await prisma.user.findFirst({
+      where: { email: cleanEmail, userRole: "parent" }
+    });
 
-  if (!user || user.passwordHash !== passwordTemp.trim()) {
-    throw new Error("Invalid email or temporary password.");
-  }
-
-  const children = await prisma.student.findMany({
-    where: { parentId: user.id },
-    include: { pii: true }
-  });
-
-  const formattedChildren = children.map(c => {
-    let name = "Anonymized Student";
-    if (c.pii) {
-      const first = decryptText(c.pii.encryptedFirstName, c.pii.iv);
-      const last = decryptText(c.pii.encryptedLastName, c.pii.iv);
-      name = `${first} ${last}`.trim();
+    if (!user || user.passwordHash !== passwordTemp.trim()) {
+      return { success: false, error: "Invalid email or temporary password." };
     }
 
-    return { id: c.id, name };
-  });
+    const children = await prisma.student.findMany({
+      where: { parentId: user.id },
+      include: { pii: true }
+    });
 
-  return {
-    parentId: user.id,
-    parentEmail: user.email,
-    children: formattedChildren
-  };
+    const formattedChildren = children.map(c => {
+      let name = "Anonymized Student";
+      if (c.pii) {
+        const first = decryptText(c.pii.encryptedFirstName, c.pii.iv);
+        const last = decryptText(c.pii.encryptedLastName, c.pii.iv);
+        name = `${first} ${last}`.trim();
+      }
+
+      return { id: c.id, name };
+    });
+
+    return {
+      success: true,
+      parentId: user.id,
+      parentEmail: user.email,
+      children: formattedChildren
+    };
+  } catch (err: any) {
+    return { success: false, error: err.message || "Database connection error." };
+  }
 }
 
 /**
  * Authenticates a consultant using their email and password.
  */
 export async function loginConsultant(email: string, passwordTemp: string) {
-  await ensureDatabaseSeeded();
-  const cleanEmail = email.trim().toLowerCase();
+  try {
+    await ensureDatabaseSeeded();
+    const cleanEmail = email.trim().toLowerCase();
 
-  const user = await prisma.user.findFirst({
-    where: { email: cleanEmail, userRole: "school_admin" }
-  });
+    const user = await prisma.user.findFirst({
+      where: { email: cleanEmail, userRole: "school_admin" }
+    });
 
-  if (!user || user.passwordHash !== passwordTemp.trim()) {
-    throw new Error("Invalid consultant email or password.");
+    if (!user || user.passwordHash !== passwordTemp.trim()) {
+      return { success: false, error: "Invalid consultant email or password." };
+    }
+
+    return {
+      success: true,
+      authenticated: true,
+      email: user.email,
+      name: `${user.firstName} ${user.lastName}`
+    };
+  } catch (err: any) {
+    return { success: false, error: err.message || "Database connection error." };
   }
-
-  return {
-    authenticated: true,
-    email: user.email,
-    name: `${user.firstName} ${user.lastName}`
-  };
 }
 
 /**
